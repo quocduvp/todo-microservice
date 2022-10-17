@@ -1,0 +1,16 @@
+{
+  "name": "todo",
+  "version": "1.0.0",
+  "description": "",
+  "main": "main.js",
+  "scripts": {
+    "start": "node main.js"
+  },
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "fastest-validator": "^1.15.0",
+    "mongoose": "^6.6.5",
+    "nats": "^2.8.0"
+  }
+}

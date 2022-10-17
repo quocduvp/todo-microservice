@@ -1,0 +1,80 @@
+version: "3.5"
+
+services:
+  # nats cluster
+  nats:
+    image: nats
+    ports:
+      - "8222:8222"
+      - "4222:4222"
+    expose:
+      - "4222"
+    command: "--auth ^*&*(!ƯHUKWH) --cluster_name NATS --cluster nats://0.0.0.0:6222"
+  nats-1:
+    image: nats
+    command: "--cluster_name NATS --cluster nats://0.0.0.0:6222 --routes=nats://nats:6222"
+    depends_on: ["nats"]
+  nats-2:
+    image: nats
+    command: "--cluster_name NATS --cluster nats://0.0.0.0:6222 --routes=nats://nats:6222"
+    depends_on: ["nats"]
+
+  # todo db
+  mongodb-todo:
+    image: mongo:latest
+    ports:
+      - "27777:27017"
+    volumes:
+      - ./db/todo:/data/db
+
+  # user db
+  mongodb-user:
+    image: mongo:latest
+    ports:
+      - "27776:27017"
+    volumes:
+      - ./db/user:/data/db
+
+  # todo services
+  user:
+    build:
+      dockerfile: Dockerfile
+      context: "./user"
+    volumes:
+      - ./user:/usr/src/app
+    environment:
+      JWT_TOKEN: nasdjn(*()*())
+      NATS_URL: nats://nats:4222
+      NATS_TOKEN: ^*&*(!ƯHUKWH)
+      MONGO_URL: mongodb://mongodb-user:27017/user-db
+    depends_on: ["nats", "mongodb-user"]
+
+  # todo services
+  todo:
+    build:
+      dockerfile: Dockerfile
+      context: "./todo"
+    volumes:
+      - /usr/src/app/node_modules
+      - ./todo:/usr/src/app
+    environment:
+      NATS_URL: nats://nats:4222
+      NATS_TOKEN: ^*&*(!ƯHUKWH)
+      MONGO_URL: mongodb://mongodb-todo:27017/todo-db
+    depends_on: ["nats", "mongodb-todo"]
+
+  # api gateway
+  api:
+    build:
+      dockerfile: Dockerfile
+      context: "./api"
+    volumes:
+      - /usr/src/app/node_modules
+      - ./api:/usr/src/app
+    environment:
+      PORT: 3001
+      NATS_URL: nats://nats:4222
+      NATS_TOKEN: ^*&*(!ƯHUKWH)
+    ports:
+      - ${PORT:-3001}:3001
+    depends_on: ["nats"]
